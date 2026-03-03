@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Schematics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Animationen */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Header */
+        header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 40px 0;
+            margin-bottom: 40px;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            color: #212529;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* Suchleiste */
+        .search-section {
+            margin-bottom: 40px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #ffffff;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+        }
+
+        .search-box button {
+            padding: 14px 28px;
+            background: #212529;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-box button:hover {
+            background: #343a40;
+            transform: translateY(-1px);
+        }
+
+        /* Schematic Grid */
+        .schematic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+
+        .schematic-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            animation: scaleIn 0.5s ease-out;
+            animation-fill-mode: both;
+            cursor: pointer;
+        }
+
+        .schematic-card:nth-child(1) { animation-delay: 0.1s; }
+        .schematic-card:nth-child(2) { animation-delay: 0.2s; }
+        .schematic-card:nth-child(3) { animation-delay: 0.3s; }
+        .schematic-card:nth-child(4) { animation-delay: 0.4s; }
+        .schematic-card:nth-child(5) { animation-delay: 0.5s; }
+        .schematic-card:nth-child(6) { animation-delay: 0.6s; }
+        .schematic-card:nth-child(7) { animation-delay: 0.7s; }
+        .schematic-card:nth-child(8) { animation-delay: 0.8s; }
+
+        .schematic-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+            border-color: #ced4da;
+        }
+
+        .schematic-preview {
+            height: 140px;
+            background: #f1f3f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #868e96;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .schematic-content {
+            padding: 20px;
+        }
+
+        .schematic-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #212529;
+            margin-bottom: 10px;
+        }
+
+        .schematic-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .schematic-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #868e96;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #212529;
+            text-decoration: none;
+            text-align: center;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-weight: 400;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background: #212529;
+            color: white;
+            border-color: #212529;
+        }
+
+        /* Modal / Detailansicht */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: scaleIn 0.3s ease-out;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #212529;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #868e96;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: #212529;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-preview {
+            background: #f1f3f5;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #868e96;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .info-section {
+            margin-bottom: 24px;
+        }
+
+        .info-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #868e96;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #212529;
+        }
+
+        .block-list {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            list-style: none;
+        }
+
+        .block-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .block-list li:last-child {
+            border-bottom: none;
+        }
+
+        .block-name {
+            color: #495057;
+        }
+
+        .block-count {
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-footer .download-btn {
+            flex: 1;
+        }
+
+        /* Footer */
+        footer {
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            padding: 30px 0;
+            margin-top: 60px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+        }
+
+        .footer-links a {
+            color: #495057;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #212529;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .schematic-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10px;
+            }
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #868e96;
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>minecraft schematics</h1>
+            <p>kostenlose baupläne zum download</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="schematic suchen...">
+                <button onclick="searchSchematics()">suchen</button>
+            </div>
+        </div>
+
+        <div class="schematic-grid" id="schematicGrid">
+            <!-- Mittelalter Haus -->
+            <div class="schematic-card" onclick="showDetails('mittelalter')">
+                <div class="schematic-preview">mittelalter haus</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">mittelalter haus</h3>
+                    <p class="schematic-description">
+                        großes haus im mittelalterlichen stil mit turm und einrichtung
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">25x25x15</span>
+                        <span class="meta-item">8.452 blöcke</span>
+                        <span class="meta-item">version 1.20</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moderne Villa -->
+            <div class="schematic-card" onclick="showDetails('villa')">
+                <div class="schematic-preview">moderne villa</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">moderne villa</h3>
+                    <p class="schematic-description">
+                        moderne villa mit pool, terrasse und großer glasfront
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">35x20x12</span>
+                        <span class="meta-item">12.847 blöcke</span>
+                        <span class="meta-item">version 1.19</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto Farm -->
+            <div class="schematic-card" onclick="showDetails('farm')">
+                <div class="schematic-preview">auto farm</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">auto farm</h3>
+                    <p class="schematic-description">
+                        vollautomatische farm für weizen, karotten und kartoffeln
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">15x15x8</span>
+                        <span class="meta-item">3.215 blöcke</span>
+                        <span class="meta-item">version 1.20</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Baumhaus -->
+            <div class="schematic-card" onclick="showDetails('baumhaus')">
+                <div class="schematic-preview">baumhaus</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">baumhaus</h3>
+                    <p class="schematic-description">
+                        großes baumhaus über drei riesigen eichen mit brücken
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">30x30x25</span>
+                        <span class="meta-item">9.623 blöcke</span>
+                        <span class="meta-item">version 1.18</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nether Basis -->
+            <div class="schematic-card" onclick="showDetails('nether')">
+                <div class="schematic-preview">nether basis</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">nether basis</h3>
+                    <p class="schematic-description">
+                        sichere basis in der netherfestung mit verteidigungstürmen
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">28x18x12</span>
+                        <span class="meta-item">6.891 blöcke</span>
+                        <span class="meta-item">version 1.20</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unterwasser Basis -->
+            <div class="schematic-card" onclick="showDetails('unterwasser')">
+                <div class="schematic-preview">unterwasser basis</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">unterwasser basis</h3>
+                    <p class="schematic-description">
+                        glaskuppel unter wasser mit mehreren räumen
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">22x22x12</span>
+                        <span class="meta-item">5.432 blöcke</span>
+                        <span class="meta-item">version 1.19</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Burg -->
+            <div class="schematic-card" onclick="showDetails('burg')">
+                <div class="schematic-preview">burg</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">burg</h3>
+                    <p class="schematic-description">
+                        große ritterburg mit mauern, türmen und hof
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">50x50x30</span>
+                        <span class="meta-item">15.789 blöcke</span>
+                        <span class="meta-item">version 1.19</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leuchtturm -->
+            <div class="schematic-card" onclick="showDetails('leuchtturm')">
+                <div class="schematic-preview">leuchtturm</div>
+                <div class="schematic-content">
+                    <h3 class="schematic-title">leuchtturm</h3>
+                    <p class="schematic-description">
+                        funktionierender leuchtturm mit rotierendem licht
+                    </p>
+                    <div class="schematic-meta">
+                        <span class="meta-item">15x15x40</span>
+                        <span class="meta-item">4.321 blöcke</span>
+                        <span class="meta-item">version 1.20</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="noResults" class="no-results" style="display: none;">
+            keine schematics gefunden
+        </div>
+    </div>
+
+    <!-- Modal für Details -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2 id="modalTitle">mittelalter haus</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Wird dynamisch befüllt -->
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="modalDownloadBtn" class="download-btn" download>schematic downloaden</a>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">home</a>
+                <a href="#">schematics</a>
+                <a href="#">about</a>
+                <a href="#">contact</a>
+            </div>
+            <p>minecraft schematics - alle downloads sind kostenlos</p>
+            <p style="margin-top: 8px; font-size: 0.8rem;">nicht offiziell mit mojang verbunden</p>
+        </div>
+    </footer>
+
+    <script>
+        // Schematic Daten
+        const schematicData = {
+            mittelalter: {
+                title: "mittelalter haus",
+                preview: "mittelalter haus",
+                description: "großes haus im mittelalterlichen stil mit turm und einrichtung. perfekt für mittelalterliche dörfer oder als spielerhaus.",
+                size: "25x25x15",
+                blocks: "8.452",
+                version: "1.20",
+                created: "15.03.2024",
+                author: "builder123",
+                downloads: "12.345",
+                blockList: [
+                    { name: "eichenholz", count: 2345 },
+                    { name: "bruchstein", count: 1890 },
+                    { name: "eichenholztreppen", count: 876 },
+                    { name: "glas", count: 234 },
+                    { name: "laternen", count: 45 },
+                    { name: "zäune", count: 123 },
+                    { name: "truhen", count: 23 },
+                    { name: "fackeln", count: 67 }
+                ],
+                downloadData: "SCHEMATIC: Mittelalter Haus\nVersion: 1.20\nGröße: 25x25x15\nBlöcke: 8452\nErsteller: Builder123\nDatum: 15.03.2024\n\nBlock-Liste:\n- Eichenholz: 2345\n- Bruchstein: 1890\n- Eichenholztreppen: 876\n- Glas: 234\n- Laternen: 45\n- Zäune: 123\n- Truhen: 23\n- Fackeln: 67\n- Werkbänke: 12\n- Öfen: 8"
+            },
+            villa: {
+                title: "moderne villa",
+                preview: "moderne villa",
+                description: "luxuriöse moderne villa mit swimmingpool, terrasse und großer glasfront. inklusive möblierung und garten.",
+                size: "35x20x12",
+                blocks: "12.847",
+                version: "1.19",
+                created: "10.03.2024",
+                author: "modernbuilder",
+                downloads: "23.456",
+                blockList: [
+                    { name: "weißer beton", count: 3421 },
+                    { name: "glas", count: 1567 },
+                    { name: "quarzblöcke", count: 2345 },
+                    { name: "schwarzer beton", count: 876 },
+                    { name: "laternen", count: 67 },
+                    { name: "teppiche", count: 234 },
+                    { name: "stufen", count: 567 },
+                    { name: "türen", count: 23 }
+                ],
+                downloadData: "SCHEMATIC: Moderne Villa\nVersion: 1.19\nGröße: 35x20x12\nBlöcke: 12847\nErsteller: ModernBuilder\nDatum: 10.03.2024\n\nBlock-Liste:\n- Weißer Beton: 3421\n- Glas: 1567\n- Quarzblöcke: 2345\n- Schwarzer Beton: 876\n- Laternen: 67\n- Teppiche: 234\n- Stufen: 567\n- Türen: 23\n- Pflanzen: 45"
+            },
+            farm: {
+                title: "auto farm",
+                preview: "auto farm",
+                description: "vollautomatische 9x9 farm für weizen, karotten und kartoffeln. mit wasserversorgung und erntesystem.",
+                size: "15x15x8",
+                blocks: "3.215",
+                version: "1.20",
+                created: "05.03.2024",
+                author: "redstonemaster",
+                downloads: "31.789",
+                blockList: [
+                    { name: "ackerboden", count: 324 },
+                    { name: "wasser", count: 45 },
+                    { name: "redstone staub", count: 234 },
+                    { name: "redstone repeater", count: 67 },
+                    { name: "redstone komparator", count: 23 },
+                    { name: "kolben", count: 56 },
+                    { name: "beobachter", count: 45 },
+                    { name: "trichter", count: 34 }
+                ],
+                downloadData: "SCHEMATIC: Auto Farm\nVersion: 1.20\nGröße: 15x15x8\nBlöcke: 3215\nErsteller: RedstoneMaster\nDatum: 05.03.2024\n\nBlock-Liste:\n- Ackerboden: 324\n- Wasser: 45\n- Redstone Staub: 234\n- Redstone Repeater: 67\n- Redstone Komparator: 23\n- Kolben: 56\n- Beobachter: 45\n- Trichter: 34\n- Truhen: 12"
+            },
+            baumhaus: {
+                title: "baumhaus",
+                preview: "baumhaus",
+                description: "riesiges baumhaus über drei riesigen eichen. mit brücken zwischen den bäumen und mehreren ebenen.",
+                size: "30x30x25",
+                blocks: "9.623",
+                version: "1.18",
+                created: "28.02.2024",
+                author: "treehousepro",
+                downloads: "15.234",
+                blockList: [
+                    { name: "eichenholz", count: 4321 },
+                    { name: "eichenlaub", count: 2345 },
+                    { name: "fichtenholz", count: 1234 },
+                    { name: "glasscheiben", count: 234 },
+                    { name: "laternen", count: 56 },
+                    { name: "seile", count: 123 },
+                    { name: "zäune", count: 345 },
+                    { name: "leitern", count: 67 }
+                ],
+                downloadData: "SCHEMATIC: Baumhaus\nVersion: 1.18\nGröße: 30x30x25\nBlöcke: 9623\nErsteller: TreehousePro\nDatum: 28.02.2024\n\nBlock-Liste:\n- Eichenholz: 4321\n- Eichenlaub: 2345\n- Fichtenholz: 1234\n- Glasscheiben: 234\n- Laternen: 56\n- Seile: 123\n- Zäune: 345\n- Leitern: 67"
+            },
+            nether: {
+                title: "nether basis",
+                preview: "nether basis",
+                description: "sichere basis integriert in eine netherfestung. mit verteidigungstürmen und lagerräumen.",
+                size: "28x18x12",
+                blocks: "6.891",
+                version: "1.20",
+                created: "20.02.2024",
+                author: "nethersurvivor",
+                downloads: "8.912",
+                blockList: [
+                    { name: "netherziegel", count: 2345 },
+                    { name: "magmablöcke", count: 234 },
+                    { name: "seelenfackeln", count: 89 },
+                    { name: "schwarzstein", count: 1234 },
+                    { name: "goldblöcke", count: 45 },
+                    { name: "netherwarzen", count: 67 },
+                    { name: "seelenlaternen", count: 34 },
+                    { name: "netherquarz", count: 123 }
+                ],
+                downloadData: "SCHEMATIC: Nether Basis\nVersion: 1.20\nGröße: 28x18x12\nBlöcke: 6891\nErsteller: NetherSurvivor\nDatum: 20.02.2024\n\nBlock-Liste:\n- Netherziegel: 2345\n- Magmablöcke: 234\n- Seelenfackeln: 89\n- Schwarzstein: 1234\n- Goldblöcke: 45\n- Netherwarzen: 67\n- Seelenlaternen: 34\n- Netherquarz: 123"
+            },
+            unterwasser: {
+                title: "unterwasser basis",
+                preview: "unterwasser basis",
+                description: "große glaskuppel unter wasser mit mehreren räumen, luftschleusen und korallengarten.",
+                size: "22x22x12",
+                blocks: "5.432",
+                version: "1.19",
+                created: "15.02.2024",
+                author: "oceanexplorer",
+                downloads: "7.456",
+                blockList: [
+                    { name: "glas", count: 2345 },
+                    { name: "prismarin", count: 1234 },
+                    { name: "laternen", count: 234 },
+                    { name: "seelaternen", count: 123 },
+                    { name: "korallen", count: 456 },
+                    { name: "nassengitter", count: 89 },
+                    { name: "trockenbrett", count: 67 }
+                ],
+                downloadData: "SCHEMATIC: Unterwasser Basis\nVersion: 1.19\nGröße: 22x22x12\nBlöcke: 5432\nErsteller: OceanExplorer\nDatum: 15.02.2024\n\nBlock-Liste:\n- Glas: 2345\n- Prismarin: 1234\n- Laternen: 234\n- Seelaternen: 123\n- Korallen: 456\n- Nassengitter: 89\n- Trockenbrett: 67"
+            },
+            burg: {
+                title: "burg",
+                preview: "burg",
+                description: "große ritterburg mit mauern, türmen, hof und verlies. inklusive zugbrücke und fahnen.",
+                size: "50x50x30",
+                blocks: "15.789",
+                version: "1.19",
+                created: "10.02.2024",
+                author: "castlebuilder",
+                downloads: "45.678",
+                blockList: [
+                    { name: "bruchstein", count: 5678 },
+                    { name: "eichenholz", count: 2345 },
+                    { name: "steinziegel", count: 3456 },
+                    { name: "fackeln", count: 234 },
+                    { name: "banner", count: 45 },
+                    { name: "zäune", count: 567 },
+                    { name: "stufen", count: 890 },
+                    { name: "fallenluke", count: 123 }
+                ],
+                downloadData: "SCHEMATIC: Burg\nVersion: 1.19\nGröße: 50x50x30\nBlöcke: 15789\nErsteller: CastleBuilder\nDatum: 10.02.2024\n\nBlock-Liste:\n- Bruchstein: 5678\n- Eichenholz: 2345\n- Steinziegel: 3456\n- Fackeln: 234\n- Banner: 45\n- Zäune: 567\n- Stufen: 890\n- Fallenluke: 123"
+            },
+            leuchtturm: {
+                title: "leuchtturm",
+                preview: "leuchtturm",
+                description: "funktionierender leuchtturm mit rotierendem licht. mit haus am fuß des turms.",
+                size: "15x15x40",
+                blocks: "4.321",
+                version: "1.20",
+                created: "05.02.2024",
+                author: "lighthousecreator",
+                downloads: "9.123",
+                blockList: [
+                    { name: "weiße wolle", count: 1234 },
+                    { name: "rote wolle", count: 567 },
+                    { name: "glas", count: 345 },
+                    { name: "laternen", count: 89 },
+                    { name: "redstone", count: 234 },
+                    { name: "treppen", count: 456 },
+                    { name: "zäune", count: 123 }
+                ],
+                downloadData: "SCHEMATIC: Leuchtturm\nVersion: 1.20\nGröße: 15x15x40\nBlöcke: 4321\nErsteller: LighthouseCreator\nDatum: 05.02.2024\n\nBlock-Liste:\n- Weiße Wolle: 1234\n- Rote Wolle: 567\n- Glas: 345\n- Laternen: 89\n- Redstone: 234\n- Treppen: 456\n- Zäune: 123"
+            }
+        };
+
+        function showDetails(id) {
+            const data = schematicData[id];
+            if (!data) return;
+
+            // Modal Titel setzen
+            document.getElementById('modalTitle').textContent = data.title;
+
+            // Modal Body befüllen
+            const modalBody = document.getElementById('modalBody');
+            
+            let blockListHtml = '';
+            data.blockList.forEach(block => {
+                blockListHtml += `<li><span class="block-name">${block.name}</span><span class="block-count">${block.count}</span></li>`;
+            });
+
+            modalBody.innerHTML = `
+                <div class="modal-preview">${data.preview}</div>
+                
+                <div class="info-section">
+                    <h3>beschreibung</h3>
+                    <p style="color: #6c757d; line-height: 1.6;">${data.description}</p>
+                </div>
+
+                <div class="info-section">
+                    <h3>details</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">größe</span>
+                            <span class="info-value">${data.size}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">blöcke</span>
+                            <span class="info-value">${data.blocks}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">version</span>
+                            <span class="info-value">${data.version}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">erstellt</span>
+                            <span class="info-value">${data.created}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">autor</span>
+                            <span class="info-value">${data.author}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">downloads</span>
+                            <span class="info-value">${data.downloads}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>block-liste</h3>
+                    <ul class="block-list">
+                        ${blockListHtml}
+                    </ul>
+                </div>
+            `;
+
+            // Download Button aktualisieren
+            const downloadBtn = document.getElementById('modalDownloadBtn');
+            downloadBtn.href = 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(data.downloadData);
+            downloadBtn.download = `${id}.schematic`;
+
+            // Modal anzeigen
+            document.getElementById('modalOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Suche Funktion
+        function searchSchematics() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.getElementsByClassName('schematic-card');
+            let visibleCount = 0;
+            
+            for (let card of cards) {
+                let title = card.querySelector('.schematic-title').textContent.toLowerCase();
+                let desc = card.querySelector('.schematic-description').textContent.toLowerCase();
+                
+                if (title.includes(input) || desc.includes(input) || input === '') {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            }
+
+            let noResults = document.getElementById('noResults');
+            if (visibleCount === 0) {
+                noResults.style.display = 'block';
+            } else {
+                noResults.style.display = 'none';
+            }
+        }
+
+        // Enter-Taste für Suche
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchSchematics();
+            }
+        });
+
+        // ESC-Taste zum Schließen des Modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
